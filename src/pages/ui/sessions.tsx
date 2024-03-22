@@ -1,4 +1,4 @@
-import { Table, ActionIcon, Badge } from '@mantine/core';
+import { Table, ActionIcon, Badge, Popover, Box, Slider, Checkbox, Select } from '@mantine/core';
 import React from 'react';
 import { ISession, SessionStatus } from '@atlasat/webphone-sdk';
 import dayjs from 'dayjs';
@@ -9,9 +9,13 @@ import {
   IconPhoneCall,
   IconMicrophone,
   IconMicrophoneOff,
+  IconVolume,
+  IconSettings,
 } from '@tabler/icons-react';
 import useSessions from '@/components/Webphone/hooks/use-sessions';
 import useSessionDuration from '@/components/Webphone/hooks/use-session-duration';
+import useSessionMedia from '@/components/Webphone/hooks/use-session-media';
+import useDevices from '@/components/Webphone/hooks/use-devices';
 
 dayjs.extend(duration);
 
@@ -22,10 +26,78 @@ const Duration: React.FC<{ session: ISession }> = ({ session }) => {
   return <>{dayjs.duration(timer * 1000).format('mm:ss')}</>;
 };
 
+const Volume: React.FC<{ session: ISession; media?: 'input' | 'output' }> = ({
+  session,
+  media = 'output',
+}) => {
+  const {
+    output: { muted, volume },
+    input: { volume: inputVolume },
+  } = useSessionMedia(session);
+
+  return (
+    <Box>
+      <Slider
+        min={0}
+        max={1}
+        step={0.025}
+        label={(value) => `${value * 100} %`}
+        value={media === 'output' ? volume : inputVolume}
+        onChange={(value) => {
+          if (media === 'output') {
+            session.media.output.volume = value;
+          } else if (media === 'input') {
+            session.media.input.volume = value;
+          }
+        }}
+      />
+      <Checkbox
+        checked={muted}
+        label="Mute speaker"
+        onChange={(event) => {
+          session.media.output.muted = event.currentTarget.checked;
+        }}
+      />
+    </Box>
+  );
+};
+
+const MediaDevice: React.FC<{ session: ISession }> = ({ session }) => {
+  const media = useDevices();
+
+  return (
+    <Box>
+      <Select
+        label="Input device"
+        onChange={async (value) => {
+          /**
+           * set deviceId
+           */
+          session.media.input.id = value || undefined;
+        }}
+        value={session.media.input.id}
+        data={media.audioInputDevices.map((item) => ({ label: item.label, value: item.deviceId }))}
+      />
+      <Volume session={session} media="input" />
+      <Select
+        label="Output device"
+        onChange={async (value) => {
+          session.media.setOutput({
+            id: value || undefined,
+            audio: new Audio(),
+          });
+        }}
+        value={session.media.output.id}
+        data={media.audioOutputDevices.map((item) => ({ label: item.label, value: item.deviceId }))}
+      />
+    </Box>
+  );
+};
+
 const Sessions: React.FC = () => {
   const sessions = useSessions();
   return (
-    <Table.ScrollContainer minWidth={400}>
+    <Table.ScrollContainer minWidth={500}>
       <Table verticalSpacing="sm">
         <Table.Thead>
           <Table.Tr>
@@ -48,9 +120,30 @@ const Sessions: React.FC = () => {
                 <Duration session={session} />
               </Table.Td>
               <Table.Td>
+                <Popover width={350} position="bottom" withArrow shadow="md">
+                  <Popover.Target>
+                    <ActionIcon variant="outline" radius="lg">
+                      <IconSettings size={15} />
+                    </ActionIcon>
+                  </Popover.Target>
+                  <Popover.Dropdown>
+                    <MediaDevice session={session} />
+                  </Popover.Dropdown>
+                </Popover>{' '}
+                <Popover width={200} position="bottom" withArrow shadow="md">
+                  <Popover.Target>
+                    <ActionIcon variant="outline" radius="lg">
+                      <IconVolume size={15} />
+                    </ActionIcon>
+                  </Popover.Target>
+                  <Popover.Dropdown>
+                    <Volume session={session} />
+                  </Popover.Dropdown>
+                </Popover>{' '}
                 <ActionIcon
                   color="blue"
                   radius="lg"
+                  variant="outline"
                   disabled={session.status === SessionStatus.RINGING}
                   onClick={() => (session.isMute ? session.unmute() : session.mute())}
                 >
@@ -59,6 +152,7 @@ const Sessions: React.FC = () => {
                 <ActionIcon
                   color="blue"
                   radius="lg"
+                  variant="outline"
                   disabled={session.status === SessionStatus.RINGING}
                   onClick={() =>
                     session.status !== SessionStatus.ON_HOLD ? session.hold() : session.unhold()

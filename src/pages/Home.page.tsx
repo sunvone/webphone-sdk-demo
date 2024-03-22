@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Container, Grid, Group, Title, Text, TextInput, Button } from '@mantine/core';
 import { useRef } from 'react';
 import RegisterWebphone from './ui/register';
@@ -10,7 +11,7 @@ export function HomePage() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <Container mt="lg">
+    <Container mt="lg" size="lg">
       <Title order={4}>Example demo sdk</Title>
       <Grid mt="md">
         <Grid.Col span={6}>
@@ -26,7 +27,9 @@ export function HomePage() {
             <Button
               onClick={() => {
                 if (inputRef.current) {
-                  client?.invite(inputRef.current.value);
+                  client?.invite(inputRef.current.value).then((session) => {
+                    console.log('session', session);
+                  });
                 }
               }}
             >
