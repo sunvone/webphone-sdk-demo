@@ -1,4 +1,14 @@
-import { Table, ActionIcon, Badge, Popover, Box, Slider, Checkbox, Select } from '@mantine/core';
+import {
+  Table,
+  ActionIcon,
+  Badge,
+  Popover,
+  Box,
+  Slider,
+  Checkbox,
+  Select,
+  Group,
+} from '@mantine/core';
 import React from 'react';
 import { ISession, SessionStatus } from '@atlasat/webphone-sdk';
 import dayjs from 'dayjs';
@@ -10,12 +20,14 @@ import {
   IconMicrophone,
   IconMicrophoneOff,
   IconVolume,
+  IconVolumeOff,
   IconSettings,
 } from '@tabler/icons-react';
 import useSessions from '@/components/Webphone/hooks/use-sessions';
 import useSessionDuration from '@/components/Webphone/hooks/use-session-duration';
 import useSessionMedia from '@/components/Webphone/hooks/use-session-media';
 import useDevices from '@/components/Webphone/hooks/use-devices';
+import Visual from '@/components/Visual';
 
 dayjs.extend(duration);
 
@@ -30,9 +42,12 @@ const Volume: React.FC<{ session: ISession; media?: 'input' | 'output' }> = ({
   session,
   media = 'output',
 }) => {
+  /**
+   * hook for media device change
+   */
   const {
-    output: { muted, volume },
-    input: { volume: inputVolume },
+    output: { muted: outputMuted, volume },
+    input: { muted: inputMuted, volume: inputVolume },
   } = useSessionMedia(session);
 
   return (
@@ -52,10 +67,17 @@ const Volume: React.FC<{ session: ISession; media?: 'input' | 'output' }> = ({
         }}
       />
       <Checkbox
-        checked={muted}
-        label="Mute speaker"
+        size="xs"
+        mt="xs"
+        checked={media === 'input' ? inputMuted : outputMuted}
+        label={media === 'input' ? 'Mute mic' : 'Mute speaker'}
         onChange={(event) => {
-          session.media.output.muted = event.currentTarget.checked;
+          if (media === 'input') {
+            session.media.input.muted = event.currentTarget.checked;
+          }
+          if (media === 'output') {
+            session.media.output.muted = event.currentTarget.checked;
+          }
         }}
       />
     </Box>
@@ -78,7 +100,6 @@ const MediaDevice: React.FC<{ session: ISession }> = ({ session }) => {
         value={session.media.input.id}
         data={media.audioInputDevices.map((item) => ({ label: item.label, value: item.deviceId }))}
       />
-      <Volume session={session} media="input" />
       <Select
         label="Output device"
         onChange={async (value) => {
@@ -103,6 +124,7 @@ const Sessions: React.FC = () => {
           <Table.Tr>
             <Table.Th>Phone Number</Table.Th>
             <Table.Th>Status</Table.Th>
+            <Table.Th>Visual</Table.Th>
             <Table.Th>Duration</Table.Th>
             <Table.Th>Action</Table.Th>
           </Table.Tr>
@@ -115,6 +137,20 @@ const Sessions: React.FC = () => {
                 <Badge color="gray" variant="light">
                   {session.status}
                 </Badge>
+              </Table.Td>
+              <Table.Td>
+                <Group>
+                  <Visual
+                    //active={session.status === SessionStatus.ACTIVE}
+                    mediaStream={session.media.localStream}
+                    type="local"
+                  />
+                  <Visual
+                    //active={session.status === SessionStatus.ACTIVE}
+                    mediaStream={session.media.remoteStream}
+                    type="remote"
+                  />
+                </Group>
               </Table.Td>
               <Table.Td>
                 <Duration session={session} />
@@ -133,22 +169,37 @@ const Sessions: React.FC = () => {
                 <Popover width={200} position="bottom" withArrow shadow="md">
                   <Popover.Target>
                     <ActionIcon variant="outline" radius="lg">
-                      <IconVolume size={15} />
+                      {session.media.output.muted ? (
+                        <IconVolumeOff size={15} />
+                      ) : (
+                        <IconVolume size={15} />
+                      )}
                     </ActionIcon>
                   </Popover.Target>
                   <Popover.Dropdown>
-                    <Volume session={session} />
+                    <Volume session={session} media="output" />
                   </Popover.Dropdown>
                 </Popover>{' '}
-                <ActionIcon
-                  color="blue"
-                  radius="lg"
-                  variant="outline"
-                  disabled={session.status === SessionStatus.RINGING}
-                  onClick={() => (session.isMute ? session.unmute() : session.mute())}
-                >
-                  {session.isMute ? <IconMicrophoneOff size={15} /> : <IconMicrophone size={15} />}
-                </ActionIcon>{' '}
+                <Popover width={200} position="bottom" withArrow shadow="md">
+                  <Popover.Target>
+                    <ActionIcon
+                      color="blue"
+                      radius="lg"
+                      variant="outline"
+                      disabled={session.status === SessionStatus.RINGING}
+                      //onClick={() => (session.isMute ? session.unmute() : session.mute())}
+                    >
+                      {session.media.input.muted ? (
+                        <IconMicrophoneOff size={15} />
+                      ) : (
+                        <IconMicrophone size={15} />
+                      )}
+                    </ActionIcon>
+                  </Popover.Target>
+                  <Popover.Dropdown>
+                    <Volume session={session} media="input" />
+                  </Popover.Dropdown>
+                </Popover>{' '}
                 <ActionIcon
                   color="blue"
                   radius="lg"

@@ -14,10 +14,10 @@ export function HomePage() {
     <Container mt="lg" size="lg">
       <Title order={4}>Example demo sdk</Title>
       <Grid mt="md">
-        <Grid.Col span={6}>
+        <Grid.Col span={4}>
           <RegisterWebphone />
         </Grid.Col>
-        <Grid.Col span={6}>
+        <Grid.Col span={8}>
           <Group>
             <Text>Status</Text>
             <ConnectedStatus />
@@ -27,9 +27,7 @@ export function HomePage() {
             <Button
               onClick={() => {
                 if (inputRef.current) {
-                  client?.invite(inputRef.current.value).then((session) => {
-                    console.log('session', session);
-                  });
+                  client?.invite(inputRef.current.value).then(() => {});
                 }
               }}
             >

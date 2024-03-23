@@ -12,6 +12,9 @@ const useSessions = () => {
         allSession.forEach((session) => {
           session.on('statusUpdate', () => setSessions(client.getSessions()));
           session.on('mute', () => setSessions(client.getSessions()));
+          session.localStream?.addEventListener('addtrack', () =>
+            setSessions(client.getSessions())
+          );
         });
         setSessions(allSession);
       }

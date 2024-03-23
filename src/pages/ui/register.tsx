@@ -26,6 +26,19 @@ const RegisterWebphone: React.FC = () => {
             transport: {
               wsServers: values.ws,
             },
+            media: {
+              input: {
+                id: undefined,
+                volume: 0.8,
+                audioProcessing: true,
+                muted: false,
+              },
+              output: {
+                id: undefined,
+                volume: 0.5,
+                muted: false,
+              },
+            },
           }).then((result) => {
             if (result) {
               result.connect();
