@@ -123,6 +123,7 @@ const Sessions: React.FC = () => {
         <Table.Thead>
           <Table.Tr>
             <Table.Th>Phone Number</Table.Th>
+            <Table.Th>Source</Table.Th>
             <Table.Th>Status</Table.Th>
             <Table.Th>Visual</Table.Th>
             <Table.Th>Duration</Table.Th>
@@ -133,6 +134,8 @@ const Sessions: React.FC = () => {
           {sessions.map((session) => (
             <Table.Tr key={session.id}>
               <Table.Td>{session.remoteIdentity.phoneNumber}</Table.Td>
+              <Table.Td>{session.isIncoming ? 'Incoming' : 'Outgoing'}</Table.Td>
+
               <Table.Td>
                 <Badge color="gray" variant="light">
                   {session.status}
@@ -227,8 +230,8 @@ const Sessions: React.FC = () => {
                       session.status === SessionStatus.ON_HOLD
                     ) {
                       session.bye();
-                    } else {
-                      session.terminate();
+                    } else if (session.isIncoming && session.status === SessionStatus.RINGING) {
+                      session.reject();
                     }
                   }}
                 >
