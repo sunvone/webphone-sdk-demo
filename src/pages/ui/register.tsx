@@ -1,12 +1,22 @@
-import { Box, Button, Group, PasswordInput, TextInput } from '@mantine/core';
+import { Box, Button, Group, PasswordInput, Select, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import React from 'react';
 import { useClient } from '@/components/Webphone';
 import useIsConnected from '@/components/Webphone/hooks/use-is-connected';
 
 const RegisterWebphone: React.FC = () => {
-  const form = useForm({
+  const form = useForm<{
+    type: 'token' | 'credential';
+    token: string;
+    user: string;
+    name: string;
+    password: string;
+    uri: string;
+    ws: string;
+  }>({
     initialValues: {
+      type: 'token',
+      token: '',
       user: '',
       name: '',
       password: '',
@@ -22,7 +32,14 @@ const RegisterWebphone: React.FC = () => {
       <form
         onSubmit={form.onSubmit((values) => {
           instance({
-            account: values,
+            type: values.type,
+            token: values.token,
+            account: {
+              user: values.user,
+              uri: values.uri,
+              name: values.name,
+              password: values.password,
+            },
             transport: {
               wsServers: values.ws,
             },
@@ -41,28 +58,45 @@ const RegisterWebphone: React.FC = () => {
             },
           }).then((result) => {
             if (result) {
-              result.connect();
+              result.init().then(() => {
+                result.connect();
+              });
             }
           });
         })}
       >
-        <TextInput
-          label="Ws server"
-          placeholder="wss://your-sip-provider.tld:8089/ws"
-          {...form.getInputProps('ws')}
+        <Select
+          label="Auth type"
+          data={[
+            { label: 'Token', value: 'token' },
+            { label: 'Credential', value: 'credential' },
+          ]}
+          {...form.getInputProps('type')}
         />
-        <TextInput
-          label="Uri"
-          placeholder="sip:201002@your-sip-provider.tld"
-          {...form.getInputProps('uri')}
-        />
-        <TextInput label="Name" placeholder="example: 201002" {...form.getInputProps('name')} />
-        <TextInput label="User" placeholder="example: 201002" {...form.getInputProps('user')} />
-        <PasswordInput
-          autoComplete="new-password"
-          label="Password"
-          {...form.getInputProps('password')}
-        />
+        {form.values.type === 'token' ? (
+          <TextInput label="Token" placeholder="Your token" {...form.getInputProps('token')} />
+        ) : (
+          <>
+            <TextInput
+              label="Ws server"
+              placeholder="wss://your-sip-provider.tld:8089/ws"
+              {...form.getInputProps('ws')}
+            />
+            <TextInput
+              label="Uri"
+              placeholder="sip:201002@your-sip-provider.tld"
+              {...form.getInputProps('uri')}
+            />
+            <TextInput label="Name" placeholder="example: 201002" {...form.getInputProps('name')} />
+            <TextInput label="User" placeholder="example: 201002" {...form.getInputProps('user')} />
+            <PasswordInput
+              autoComplete="new-password"
+              label="Password"
+              {...form.getInputProps('password')}
+            />
+          </>
+        )}
+
         <Group>
           <Button type="submit" mt="md" disabled={isConnected}>
             Register

@@ -1,13 +1,15 @@
 /* eslint-disable no-console */
-import { Container, Grid, Group, Title, Text, TextInput, Button } from '@mantine/core';
+import { Container, Grid, Group, Title, Text, TextInput, Button, Badge } from '@mantine/core';
 import { useRef } from 'react';
 import RegisterWebphone from './ui/register';
 import ConnectedStatus from './ui/connected';
 import Sessions from './ui/sessions';
 import { useClient } from '@/components/Webphone';
+import useAccount from '@/components/Webphone/hooks/use-account';
 
 export function HomePage() {
   const { client } = useClient();
+  const account = useAccount();
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
@@ -21,6 +23,8 @@ export function HomePage() {
           <Group>
             <Text>Status</Text>
             <ConnectedStatus />
+            <Text>Account: </Text>
+            <Badge color="gray">{account?.user || 'No user connected'}</Badge>
           </Group>
           <Group mt="md">
             <TextInput ref={inputRef} placeholder="sip:number@domain.com" />
