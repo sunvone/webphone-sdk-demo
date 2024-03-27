@@ -22,7 +22,7 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
-    "@atlasat/webphone-sdk": "^1.0.16",
+    "@atlasat/webphone-sdk": "^1.0.21",
     "@mantine/core": "7.6.2",
     "@mantine/form": "^7.6.2",
     "@mantine/hooks": "7.6.2",
