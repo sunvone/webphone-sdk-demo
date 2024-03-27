@@ -16,10 +16,10 @@ export function HomePage() {
     <Container mt="lg" size="lg">
       <Title order={4}>Example demo sdk</Title>
       <Grid mt="md">
-        <Grid.Col span={4}>
+        <Grid.Col span={3}>
           <RegisterWebphone />
         </Grid.Col>
-        <Grid.Col span={8}>
+        <Grid.Col span={9}>
           <Group>
             <Text>Status</Text>
             <ConnectedStatus />
@@ -31,7 +31,7 @@ export function HomePage() {
             <Button
               onClick={() => {
                 if (inputRef.current) {
-                  client?.invite(inputRef.current.value).then(() => {});
+                  client?.invite(inputRef.current.value, { earlyMedia: true }).then(() => {});
                 }
               }}
             >

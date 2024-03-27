@@ -8,6 +8,8 @@ import {
   Checkbox,
   Select,
   Group,
+  TextInput,
+  Button,
 } from '@mantine/core';
 import React from 'react';
 import { ISession, SessionStatus } from '@atlasat/webphone-sdk';
@@ -22,7 +24,9 @@ import {
   IconVolume,
   IconVolumeOff,
   IconSettings,
+  IconDialpad,
 } from '@tabler/icons-react';
+import { useForm } from '@mantine/form';
 import useSessions from '@/components/Webphone/hooks/use-sessions';
 import useSessionDuration from '@/components/Webphone/hooks/use-session-duration';
 import useSessionMedia from '@/components/Webphone/hooks/use-session-media';
@@ -36,6 +40,27 @@ dayjs.extend(duration);
 const Duration: React.FC<{ session: ISession }> = ({ session }) => {
   const timer = useSessionDuration(session);
   return <>{dayjs.duration(timer * 1000).format('mm:ss')}</>;
+};
+
+const Dtmf: React.FC<{ session: ISession }> = ({ session }) => {
+  const form = useForm({
+    initialValues: {
+      dtmf: '',
+    },
+  });
+  return (
+    <Group>
+      <TextInput size="xs" placeholder="send dtmf example: 1" {...form.getInputProps('dtmf')} />
+      <Button
+        size="xs"
+        onClick={() => {
+          session.dtmf(form.values.dtmf);
+        }}
+      >
+        Send
+      </Button>
+    </Group>
+  );
 };
 
 const Volume: React.FC<{ session: ISession; media?: 'input' | 'output' }> = ({
@@ -91,6 +116,7 @@ const MediaDevice: React.FC<{ session: ISession }> = ({ session }) => {
     <Box>
       <Select
         label="Input device"
+        size="xs"
         onChange={async (value) => {
           /**
            * set deviceId
@@ -102,6 +128,7 @@ const MediaDevice: React.FC<{ session: ISession }> = ({ session }) => {
       />
       <Select
         label="Output device"
+        size="xs"
         onChange={async (value) => {
           session.media.setOutput({
             id: value || undefined,
@@ -143,16 +170,8 @@ const Sessions: React.FC = () => {
               </Table.Td>
               <Table.Td>
                 <Group>
-                  <Visual
-                    //active={session.status === SessionStatus.ACTIVE}
-                    mediaStream={session.media.localStream}
-                    type="local"
-                  />
-                  <Visual
-                    //active={session.status === SessionStatus.ACTIVE}
-                    mediaStream={session.media.remoteStream}
-                    type="remote"
-                  />
+                  <Visual mediaStream={session.media.localStream} type="local" />
+                  <Visual mediaStream={session.media.remoteStream} type="remote" />
                 </Group>
               </Table.Td>
               <Table.Td>
@@ -167,6 +186,16 @@ const Sessions: React.FC = () => {
                   </Popover.Target>
                   <Popover.Dropdown>
                     <MediaDevice session={session} />
+                  </Popover.Dropdown>
+                </Popover>{' '}
+                <Popover width={300} position="bottom" withArrow shadow="md">
+                  <Popover.Target>
+                    <ActionIcon variant="outline" radius="lg">
+                      <IconDialpad size={15} />
+                    </ActionIcon>
+                  </Popover.Target>
+                  <Popover.Dropdown>
+                    <Dtmf session={session} />
                   </Popover.Dropdown>
                 </Popover>{' '}
                 <Popover width={200} position="bottom" withArrow shadow="md">
@@ -190,7 +219,6 @@ const Sessions: React.FC = () => {
                       radius="lg"
                       variant="outline"
                       disabled={session.status === SessionStatus.RINGING}
-                      //onClick={() => (session.isMute ? session.unmute() : session.mute())}
                     >
                       {session.media.input.muted ? (
                         <IconMicrophoneOff size={15} />
