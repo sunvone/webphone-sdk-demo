@@ -129,11 +129,12 @@ const MediaDevice: React.FC<{ session: ISession }> = ({ session }) => {
       <Select
         label="Output device"
         size="xs"
-        onChange={async (value) => {
-          session.media.setOutput({
-            id: value || undefined,
-            audio: new Audio(),
-          });
+        onChange={(value) => {
+          // session.media.setOutput({
+          //   id: value || undefined,
+          //   //audio: new Audio(),
+          // });
+          session.media.output.id = value || '';
         }}
         value={session.media.output.id}
         data={media.audioOutputDevices.map((item) => ({ label: item.label, value: item.deviceId }))}
