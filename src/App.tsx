@@ -1,4 +1,5 @@
 import '@mantine/core/styles.css';
+import { Notifications } from '@mantine/notifications';
 import { MantineProvider } from '@mantine/core';
 import { ModalsProvider } from '@mantine/modals';
 import { Router } from './Router';
@@ -11,6 +12,7 @@ export default function App() {
   return (
     <WebphoneProvider>
       <MantineProvider theme={theme}>
+        <Notifications />
         <ModalsProvider>
           <Router />
         </ModalsProvider>

@@ -1,6 +1,7 @@
 import { Box, Button, Group, PasswordInput, Select, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import React from 'react';
+import { notifications } from '@mantine/notifications';
 import { useClient } from '@/components/Webphone';
 import useIsConnected from '@/components/Webphone/hooks/use-is-connected';
 
@@ -58,9 +59,18 @@ const RegisterWebphone: React.FC = () => {
             },
           }).then((result) => {
             if (result) {
-              result.init().then(() => {
-                result.connect();
-              });
+              result
+                .init()
+                .then(() => {
+                  result.connect();
+                })
+                .catch(() => {
+                  notifications.show({
+                    color: 'red',
+                    title: 'Failed to register',
+                    message: 'Invalid token or credential',
+                  });
+                });
             }
           });
         })}
@@ -99,7 +109,7 @@ const RegisterWebphone: React.FC = () => {
 
         <Group>
           <Button type="submit" mt="md" disabled={isConnected}>
-            Register
+            Connect
           </Button>
           <Button
             disabled={!isConnected}
@@ -107,7 +117,7 @@ const RegisterWebphone: React.FC = () => {
             mt="md"
             onClick={() => client?.disconnect()}
           >
-            Unregister
+            Disconnect
           </Button>
         </Group>
       </form>
